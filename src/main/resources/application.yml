@@ -1,0 +1,14 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+      client-id: sample-app
+      group-id: data-listener
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+    properties: # for KafkaAvroDeserializer
+      schema.registry.url: http://localhost:8081
+      specific.avro.reader: true
+
+topics:
+  example-data: example-data-topic

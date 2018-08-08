@@ -1,0 +1,17 @@
+spring:
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    consumer:
+      auto-offset-reset: earliest
+      client-id: sample-app
+      group-id: data-listener
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+    producer:
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    properties: # for KafkaAvroDeserializer
+      # this value doesn't matter but is required
+      schema.registry.url: http://mock:8081
+      specific.avro.reader: true
+
+topics:
+  example-data: example-data-topic

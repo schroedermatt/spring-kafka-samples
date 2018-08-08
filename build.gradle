@@ -1,0 +1,50 @@
+buildscript {
+	ext {
+		springBootVersion = '2.0.4.RELEASE'
+		gradleAvroVersion = '0.14.2'
+	}
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath "com.commercehub.gradle.plugin:gradle-avro-plugin:${gradleAvroVersion}"
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: "com.commercehub.gradle.plugin.avro"
+
+group = 'com.mschroeder.kafka.listener'
+version = '0.0.1'
+sourceCompatibility = 1.8
+
+repositories {
+	jcenter()
+	maven {
+		url "http://packages.confluent.io/maven/"
+	}
+}
+
+dependencies {
+	compile 'org.springframework.boot:spring-boot-starter'
+	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	compile 'org.springframework.kafka:spring-kafka'
+
+	compile "joda-time:joda-time:${joda_version}"
+	compile "org.apache.avro:avro:${avro_version}"
+	compile "io.confluent:kafka-avro-serializer:${kafka_avro_version}"
+
+	compileOnly "org.projectlombok:lombok:${lombok_version}"
+
+	testCompile 'org.springframework.boot:spring-boot-starter-test'
+	testCompile 'org.springframework.kafka:spring-kafka-test'
+	testCompile group: 'org.spockframework', name: 'spock-core', version: spockframework_version
+	testCompile group: 'org.spockframework', name: 'spock-spring', version: spockframework_version
+
+	testRuntime group: 'com.h2database', name: 'h2'
+}
