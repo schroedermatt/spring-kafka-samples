@@ -12,7 +12,7 @@ import spock.lang.Specification
 
 @SpringBootTest
 @EmbeddedKafka(topics = '${topics.sample-data}')
-class ExampleListenerSpec extends Specification {
+class AvroListenerSpec extends Specification {
     @Value('${topics.sample-data}')
     private String topic
 

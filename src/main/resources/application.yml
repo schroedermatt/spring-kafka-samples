@@ -6,9 +6,13 @@ spring:
       client-id: sample-app
       group-id: data-listener
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      enable-auto-commit: false
     properties: # for KafkaAvroDeserializer
       schema.registry.url: http://localhost:8081
       specific.avro.reader: true
+    listener:
+      ack-mode: manual
 
 topics:
   example-data: example-data-topic
+  retry-data: retry-topic
