@@ -8,6 +8,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
@@ -85,7 +86,8 @@ class MockSerdeConfig {
 	 * under the covers by all consumers when deserializing Avro data.
 	 * @return ConcurrentKafkaListenerContainerFactory instance
 	 */
-	@Bean
+	@Primary
+	@Bean("avroListenerFactory")
 	ConcurrentKafkaListenerContainerFactory kafkaListenerContainerFactory() {
 		ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory()
 		factory.setConsumerFactory(consumerFactory())

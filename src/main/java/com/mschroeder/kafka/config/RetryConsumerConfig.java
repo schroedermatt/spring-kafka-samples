@@ -2,7 +2,6 @@ package com.mschroeder.kafka.config;
 
 import com.mschroeder.kafka.domain.ImportantData;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +10,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
@@ -24,7 +23,6 @@ import static org.springframework.kafka.listener.AbstractMessageListenerContaine
 public class RetryConsumerConfig {
 	private final KafkaProperties kafkaProperties;
 
-	@Autowired
 	public RetryConsumerConfig(KafkaProperties kafkaProperties) {
 		this.kafkaProperties = kafkaProperties;
 	}
@@ -35,17 +33,22 @@ public class RetryConsumerConfig {
 
 		// retry 5 times, but only for KafkaException
 		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5, singletonMap(KafkaException.class, true)));
-		// exponentially backoff (default 100ms, multiplier 2)
-		retryTemplate.setBackOffPolicy(new ExponentialBackOffPolicy());
+		// fixed backoff
+		FixedBackOffPolicy policy = new FixedBackOffPolicy();
+		policy.setBackOffPeriod(100);
+		retryTemplate.setBackOffPolicy(policy);
 
 		return retryTemplate;
 	}
 
 	@Bean
-	public ConsumerFactory<String, ImportantData> consumerFactory() {
+	public ConsumerFactory<String, ImportantData> jsonConsumerFactory() {
 		Map<String, Object> props = kafkaProperties.buildConsumerProperties();
 		// override the deserializer prop to use JSON
 		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+		props.put(ConsumerConfig.GROUP_ID_CONFIG, "json-listener");
+		props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+//		props.put(ConsumerConfig.CLIENT_ID_CONFIG, "json-client");
 		return new DefaultKafkaConsumerFactory<>(props);
 	}
 
@@ -53,7 +56,7 @@ public class RetryConsumerConfig {
 	public ConcurrentKafkaListenerContainerFactory<String, ImportantData> retryListenerFactory() {
 		ConcurrentKafkaListenerContainerFactory<String, ImportantData> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.getContainerProperties().setAckMode(MANUAL);
-		factory.setConsumerFactory(consumerFactory());
+		factory.setConsumerFactory(jsonConsumerFactory());
 		factory.setRetryTemplate(retryTemplate());
 
 		return factory;

@@ -1,20 +1,25 @@
 package com.mschroeder.kafka.listener
 
+import com.mschroeder.kafka.config.MockBeanFactory
 import com.mschroeder.kafka.domain.ImportantData
-import com.mschroeder.kafka.service.ImportantDataService;
+import com.mschroeder.kafka.service.ImportantDataServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.kafka.KafkaException
+import org.springframework.context.annotation.Import
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
 import spock.lang.Specification
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest
-@EmbeddedKafka
+@EmbeddedKafka(topics = ['retry-topic'])
+@Import([MockBeanFactory])
 class RetryListenerSpec extends Specification {
+	private CountDownLatch latch
+
 	@Autowired
 	KafkaEmbedded kafkaEmbedded
 
@@ -22,10 +27,7 @@ class RetryListenerSpec extends Specification {
 	KafkaTemplate<String, ImportantData> kafkaTemplate
 
 	@Autowired
-	CountdownLatchRetryListener retryListener
-
-	@Autowired
-	ImportantDataService mockImportantDataService
+	ImportantDataServiceImpl mockImportantDataService
 
 	def cleanup() {
 		kafkaEmbedded.after()
@@ -33,19 +35,21 @@ class RetryListenerSpec extends Specification {
 
 	def 'retry stuff'() {
 		given:
+		latch = new CountDownLatch(1)
+
 		def data = new ImportantData()
 		data.id = 1
 		data.name = 'testing'
 		data.description = 'this is just a retry, this is just a retry'
 
 		when:
-		kafkaTemplate.send('key1', data)
+		kafkaTemplate.send('retry-topic', "test1", data)
 		kafkaTemplate.flush()
 
 		then:
-		1 * mockImportantDataService.syncData(_) >> { throw new KafkaException("ugh") }
-		1 * mockImportantDataService.syncData(_) >> { /** noop **/ }
+//		2 * mockImportantDataService.syncData(_) >> { throw new KafkaException("ugh") }
+		mockImportantDataService.syncData(_) >> { latch.countDown() }
 
-		retryListener.latch.await(20, TimeUnit.SECONDS)
+		latch.await(20, TimeUnit.SECONDS)
 	}
 }
