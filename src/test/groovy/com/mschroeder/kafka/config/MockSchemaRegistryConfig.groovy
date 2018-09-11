@@ -4,6 +4,7 @@ import com.mschroeder.kafka.avro.AvroSampleData
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroSerializer
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
@@ -11,15 +12,15 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaProducerFactory
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.core.ProducerFactory
+import org.springframework.kafka.core.*
+
+import static org.springframework.kafka.listener.AbstractMessageListenerContainer.AckMode.MANUAL
 
 @TestConfiguration
-class MockSerdeConfig {
+class MockSchemaRegistryConfig {
 	private KafkaProperties props
-	MockSerdeConfig(KafkaProperties kafkaProperties) {
+
+	MockSchemaRegistryConfig(KafkaProperties kafkaProperties) {
 		props = kafkaProperties
 	}
 
@@ -74,7 +75,7 @@ class MockSerdeConfig {
 	@Bean
 	@Primary
 	KafkaTemplate<String, AvroSampleData> avroKafkaTemplate() {
-		return new KafkaTemplate<>(producerFactory())
+		new KafkaTemplate<>(producerFactory())
 	}
 
 	/**
@@ -84,11 +85,14 @@ class MockSerdeConfig {
 	 * @param props KafkaProperties configured in application.yml
 	 * @return DefaultKafkaConsumerFactory instance
 	 */
-	@Bean
 	@Primary
-	DefaultKafkaConsumerFactory<String, KafkaAvroDeserializer> consumerFactory() {
+	@Bean("avroConsumerFactory")
+	ConsumerFactory<String, AvroSampleData> avroConsumerFactory() {
+		def props = props.buildConsumerProperties()
+		props.put(ConsumerConfig.GROUP_ID_CONFIG, "avro-listener")
+
 		new DefaultKafkaConsumerFactory(
-				props.buildConsumerProperties(),
+				props,
 				new StringDeserializer(),
 				kafkaAvroDeserializer()
 		)
@@ -102,9 +106,10 @@ class MockSerdeConfig {
 	 */
 	@Primary
 	@Bean("avroListenerFactory")
-	ConcurrentKafkaListenerContainerFactory kafkaListenerContainerFactory() {
+	ConcurrentKafkaListenerContainerFactory<String, AvroSampleData> avroListenerFactory() {
 		ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory()
-		factory.setConsumerFactory(consumerFactory())
+		factory.getContainerProperties().setAckMode(MANUAL)
+		factory.setConsumerFactory(avroConsumerFactory())
 		return factory
 	}
 }

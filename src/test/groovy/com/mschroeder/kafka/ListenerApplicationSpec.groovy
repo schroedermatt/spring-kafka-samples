@@ -1,12 +1,8 @@
 package com.mschroeder.kafka
 
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.kafka.test.context.EmbeddedKafka
-import spock.lang.Specification
+import com.mschroeder.kafka.config.BaseKafkaSpecification
 
-@SpringBootTest
-@EmbeddedKafka
-class ListenerApplicationSpec extends Specification {
+class ListenerApplicationSpec extends BaseKafkaSpecification {
 	def 'context loads'() {
 		expect:
 		true
