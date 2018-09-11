@@ -1,21 +1,18 @@
 package com.mschroeder.kafka.listener
 
 import com.mschroeder.kafka.config.BaseKafkaSpecification
-import com.mschroeder.kafka.config.MockBeanFactory
 import com.mschroeder.kafka.domain.ImportantData
 import com.mschroeder.kafka.service.ImportantDataService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Import
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.KafkaException
 import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.test.annotation.DirtiesContext
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 @Slf4j
-@Import([MockBeanFactory])
 class RetryListenerSpec extends BaseKafkaSpecification {
 	// used for keeping track of mock calls to dataService
 	private int mockExecutions
@@ -27,6 +24,9 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 			name: 'testing',
 			description: 'this is just a retry, this is just a retry'
 	)
+
+	@Value('${topics.retry-data}')
+	private String topic
 
 	@Autowired
 	KafkaTemplate<String, ImportantData> kafkaTemplate
@@ -68,7 +68,7 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 		}
 
 		when: 'a message is published'
-		kafkaTemplate.send('retry-topic', "123", data)
+		kafkaTemplate.send(topic, "123", data)
 		kafkaTemplate.flush()
 
 		then: 'the latch will countdown within 10 seconds'

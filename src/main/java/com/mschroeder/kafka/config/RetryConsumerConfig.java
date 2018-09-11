@@ -53,8 +53,8 @@ public class RetryConsumerConfig {
 		return new DefaultKafkaConsumerFactory<>(props);
 	}
 
-	@Bean("retryListenerFactory")
-	public ConcurrentKafkaListenerContainerFactory<String, ImportantData> retryListenerFactory() {
+	@Bean("kafkaListenerContainerFactory")
+	public ConcurrentKafkaListenerContainerFactory<String, ImportantData> kafkaListenerContainerFactory() {
 		ConcurrentKafkaListenerContainerFactory<String, ImportantData> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.getContainerProperties().setAckMode(MANUAL);
 		factory.setConsumerFactory(jsonConsumerFactory());

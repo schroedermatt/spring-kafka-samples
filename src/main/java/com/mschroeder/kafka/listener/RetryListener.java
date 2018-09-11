@@ -16,7 +16,7 @@ public class RetryListener {
 		this.dataService = service;
 	}
 
-	@KafkaListener(topics = "${topics.retry-data}", containerFactory = "retryListenerFactory")
+	@KafkaListener(topics = "${topics.retry-data}", containerFactory = "kafkaListenerContainerFactory")
 	public void listen(ConsumerRecord<String, ImportantData> record, Acknowledgment acks) {
 		log.info("received: key={}, value={}", record.key(), record.value());
 		dataService.syncData(record.value());

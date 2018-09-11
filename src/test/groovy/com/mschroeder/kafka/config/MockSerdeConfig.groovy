@@ -1,19 +1,22 @@
 package com.mschroeder.kafka.config
 
+import com.mschroeder.kafka.avro.AvroSampleData
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
+import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.core.ProducerFactory
 
-@Configuration
+@TestConfiguration
 class MockSerdeConfig {
 	private KafkaProperties props
 	MockSerdeConfig(KafkaProperties kafkaProperties) {
@@ -26,6 +29,7 @@ class MockSerdeConfig {
 	 * @return MockSchemaRegistryClient instance
 	 */
 	@Bean
+	@Primary
 	MockSchemaRegistryClient schemaRegistryClient() {
 		new MockSchemaRegistryClient()
 	}
@@ -35,6 +39,7 @@ class MockSerdeConfig {
 	 * @return KafkaAvroSerializer instance
 	 */
 	@Bean
+	@Primary
 	KafkaAvroSerializer kafkaAvroSerializer() {
 		new KafkaAvroSerializer(schemaRegistryClient())
 	}
@@ -44,6 +49,7 @@ class MockSerdeConfig {
 	 * @return KafkaAvroDeserializer instance
 	 */
 	@Bean
+	@Primary
 	KafkaAvroDeserializer kafkaAvroDeserializer() {
 		new KafkaAvroDeserializer(schemaRegistryClient(), props.buildConsumerProperties())
 	}
@@ -56,12 +62,19 @@ class MockSerdeConfig {
 	 * @return DefaultKafkaProducerFactory instance
 	 */
 	@Bean
-	DefaultKafkaProducerFactory producerFactory() {
+	@Primary
+	ProducerFactory<String, AvroSampleData> producerFactory() {
 		new DefaultKafkaProducerFactory(
 				props.buildProducerProperties(),
 				new StringSerializer(),
 				kafkaAvroSerializer()
 		)
+	}
+
+	@Bean
+	@Primary
+	KafkaTemplate<String, AvroSampleData> avroKafkaTemplate() {
+		return new KafkaTemplate<>(producerFactory())
 	}
 
 	/**
@@ -72,7 +85,8 @@ class MockSerdeConfig {
 	 * @return DefaultKafkaConsumerFactory instance
 	 */
 	@Bean
-	DefaultKafkaConsumerFactory consumerFactory() {
+	@Primary
+	DefaultKafkaConsumerFactory<String, KafkaAvroDeserializer> consumerFactory() {
 		new DefaultKafkaConsumerFactory(
 				props.buildConsumerProperties(),
 				new StringDeserializer(),

@@ -4,7 +4,6 @@ import com.mschroeder.kafka.service.ImportantDataService
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
-import org.springframework.kafka.support.Acknowledgment
 import spock.mock.DetachedMockFactory
 
 @TestConfiguration
