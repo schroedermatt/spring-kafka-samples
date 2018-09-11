@@ -1,55 +1,97 @@
 package com.mschroeder.kafka.listener
 
+import com.mschroeder.kafka.config.BaseKafkaSpecification
 import com.mschroeder.kafka.config.MockBeanFactory
 import com.mschroeder.kafka.domain.ImportantData
-import com.mschroeder.kafka.service.ImportantDataServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest
+import com.mschroeder.kafka.service.ImportantDataService
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
-import spock.lang.Specification
+import org.springframework.kafka.KafkaException
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.test.annotation.DirtiesContext
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-@SpringBootTest
-@EmbeddedKafka(topics = ['retry-topic'])
+@Slf4j
 @Import([MockBeanFactory])
-class RetryListenerSpec extends Specification {
+class RetryListenerSpec extends BaseKafkaSpecification {
+	// used for keeping track of mock calls to dataService
+	private int mockExecutions
+	// used to keep test waiting while kafka consumer runs
 	private CountDownLatch latch
-
-	@Autowired
-	KafkaEmbedded kafkaEmbedded
+	// sample important data for tests
+	private ImportantData data = new ImportantData(
+			id: 1,
+			name: 'testing',
+			description: 'this is just a retry, this is just a retry'
+	)
 
 	@Autowired
 	KafkaTemplate<String, ImportantData> kafkaTemplate
 
 	@Autowired
-	ImportantDataServiceImpl mockImportantDataService
+	ImportantDataService mockDataService
 
-	def cleanup() {
-		kafkaEmbedded.after()
+	def setup() {
+		mockExecutions = 0
 	}
 
-	def 'retry stuff'() {
-		given:
+	def cleanup() {
+		mockExecutions = 0
+	}
+
+	def fail() {
+		log.error("FAILING ON EXECUTION #{}", mockExecutions)
+		throw new KafkaException("oops!")
+	}
+
+	def succeed() {
+		log.info("SUCCEEDING ON EXECUTION #{}", mockExecutions)
+		latch.countDown()
+	}
+
+	def 'RetryTemplate: message will succeed after failing 3 times'() {
+		given: 'the expectation to sync the data once'
 		latch = new CountDownLatch(1)
 
-		def data = new ImportantData()
-		data.id = 1
-		data.name = 'testing'
-		data.description = 'this is just a retry, this is just a retry'
+		// fail 3 times and then succeed
+		mockDataService.syncData(_ as ImportantData) >> {
+			mockExecutions++
 
-		when:
-		kafkaTemplate.send('retry-topic', "test1", data)
+			if (mockExecutions < 4) {
+				fail()
+			}
+
+			succeed()
+		}
+
+		when: 'a message is published'
+		kafkaTemplate.send('retry-topic', "123", data)
 		kafkaTemplate.flush()
 
-		then:
-//		2 * mockImportantDataService.syncData(_) >> { throw new KafkaException("ugh") }
-		mockImportantDataService.syncData(_) >> { latch.countDown() }
+		then: 'the latch will countdown within 10 seconds'
+		latch.await(5, TimeUnit.SECONDS)
+		mockExecutions == 4
+	}
 
-		latch.await(20, TimeUnit.SECONDS)
+	def 'RetryTemplate: message will fail after limit of 5 attempts'() {
+		given: 'the expectation to not sync the data'
+		latch = new CountDownLatch(1)
+
+		// fail every time until limit is hit
+		mockDataService.syncData(_ as ImportantData) >> {
+			mockExecutions++
+			fail()
+		}
+
+		when: 'a message is published'
+		kafkaTemplate.send('retry-topic', "123", data)
+		kafkaTemplate.flush()
+
+		then: 'the latch will not change within 10 seconds'
+		!latch.await(5, TimeUnit.SECONDS)
+		mockExecutions == 5
 	}
 }

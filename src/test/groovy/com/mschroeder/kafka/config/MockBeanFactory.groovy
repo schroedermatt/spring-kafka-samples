@@ -1,10 +1,10 @@
 package com.mschroeder.kafka.config
 
 import com.mschroeder.kafka.service.ImportantDataService
-import com.mschroeder.kafka.service.ImportantDataServiceImpl
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
+import org.springframework.kafka.support.Acknowledgment
 import spock.mock.DetachedMockFactory
 
 @TestConfiguration
@@ -14,8 +14,13 @@ class MockBeanFactory {
     @Bean
     @Primary
     ImportantDataService importantDataServiceMock() {
-        ImportantDataService mock = mockFactory.Mock(ImportantDataService)
-
-        return mock
+        mockFactory.Mock(ImportantDataService)
     }
+
+// use acks to run the CountdownLatch?
+//    @Bean
+//    @Primary
+//    Acknowledgment mockAcknowledgement() {
+//        mockFactory.Mock(Acknowledgment)
+//    }
 }

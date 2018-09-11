@@ -33,9 +33,11 @@ public class RetryConsumerConfig {
 
 		// retry 5 times, but only for KafkaException
 		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5, singletonMap(KafkaException.class, true)));
+
 		// fixed backoff
 		FixedBackOffPolicy policy = new FixedBackOffPolicy();
 		policy.setBackOffPeriod(100);
+
 		retryTemplate.setBackOffPolicy(policy);
 
 		return retryTemplate;
@@ -44,7 +46,6 @@ public class RetryConsumerConfig {
 	@Bean
 	public ConsumerFactory<String, ImportantData> jsonConsumerFactory() {
 		Map<String, Object> props = kafkaProperties.buildConsumerProperties();
-		// override the deserializer prop to use JSON
 		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 		props.put(ConsumerConfig.GROUP_ID_CONFIG, "json-listener");
 		props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
