@@ -35,6 +35,7 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 	ImportantDataService mockDataService
 
 	def setup() {
+		latch = new CountDownLatch(1)
 		mockExecutions = 0
 	}
 
@@ -44,8 +45,6 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 
 	def 'listener will retry 4 times and succeed'() {
 		given: 'the expectation to sync the data once'
-		latch = new CountDownLatch(1)
-
 		// fail 3 times and then succeed
 		mockDataService.syncData(_ as ImportantData) >> {
 			mockExecutions++
@@ -67,8 +66,6 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 
 	def 'listener will fail after retrying the limit of 5 attempts'() {
 		given: 'the expectation to not sync the data'
-		latch = new CountDownLatch(1)
-
 		// fail every time until limit is hit
 		mockDataService.syncData(_ as ImportantData) >> {
 			mockExecutions++
@@ -85,8 +82,6 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 
 	def 'listener will fail if non KafkaException is thrown'() {
 		given: 'the expectation to not sync the data'
-		latch = new CountDownLatch(1)
-
 		// fail with a RuntimeException
 		mockDataService.syncData(_ as ImportantData) >> {
 			mockExecutions++

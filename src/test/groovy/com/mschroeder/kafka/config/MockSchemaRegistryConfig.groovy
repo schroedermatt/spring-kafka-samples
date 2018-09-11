@@ -10,7 +10,6 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.*
 
@@ -30,7 +29,6 @@ class MockSchemaRegistryConfig {
 	 * @return MockSchemaRegistryClient instance
 	 */
 	@Bean
-	@Primary
 	MockSchemaRegistryClient schemaRegistryClient() {
 		new MockSchemaRegistryClient()
 	}
@@ -40,7 +38,6 @@ class MockSchemaRegistryConfig {
 	 * @return KafkaAvroSerializer instance
 	 */
 	@Bean
-	@Primary
 	KafkaAvroSerializer kafkaAvroSerializer() {
 		new KafkaAvroSerializer(schemaRegistryClient())
 	}
@@ -50,7 +47,6 @@ class MockSchemaRegistryConfig {
 	 * @return KafkaAvroDeserializer instance
 	 */
 	@Bean
-	@Primary
 	KafkaAvroDeserializer kafkaAvroDeserializer() {
 		new KafkaAvroDeserializer(schemaRegistryClient(), props.buildConsumerProperties())
 	}
@@ -63,7 +59,6 @@ class MockSchemaRegistryConfig {
 	 * @return DefaultKafkaProducerFactory instance
 	 */
 	@Bean
-	@Primary
 	ProducerFactory<String, AvroSampleData> producerFactory() {
 		new DefaultKafkaProducerFactory(
 				props.buildProducerProperties(),
@@ -73,7 +68,6 @@ class MockSchemaRegistryConfig {
 	}
 
 	@Bean
-	@Primary
 	KafkaTemplate<String, AvroSampleData> avroKafkaTemplate() {
 		new KafkaTemplate<>(producerFactory())
 	}
@@ -85,7 +79,6 @@ class MockSchemaRegistryConfig {
 	 * @param props KafkaProperties configured in application.yml
 	 * @return DefaultKafkaConsumerFactory instance
 	 */
-	@Primary
 	@Bean("avroConsumerFactory")
 	ConsumerFactory<String, AvroSampleData> avroConsumerFactory() {
 		def props = props.buildConsumerProperties()
@@ -104,7 +97,6 @@ class MockSchemaRegistryConfig {
 	 * under the covers by all consumers when deserializing Avro data.
 	 * @return ConcurrentKafkaListenerContainerFactory instance
 	 */
-	@Primary
 	@Bean("avroListenerFactory")
 	ConcurrentKafkaListenerContainerFactory<String, AvroSampleData> avroListenerFactory() {
 		ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory()

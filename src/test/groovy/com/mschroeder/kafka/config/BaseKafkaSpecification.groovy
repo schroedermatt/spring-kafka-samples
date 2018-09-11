@@ -13,22 +13,23 @@ import spock.lang.Specification
 @DirtiesContext
 @ActiveProfiles("test")
 @Import([MockBeanFactory, MockSchemaRegistryConfig])
-@EmbeddedKafka(topics = ['retry-topic', 'example-data-topic'])
+@EmbeddedKafka(topics = ['${topics.retry-data}', '${topics.example-data}'], controlledShutdown = true)
 class BaseKafkaSpecification extends Specification {
     @Autowired
     protected static KafkaEmbedded kafkaEmbedded
 
-    def setupSpec() {
+    def cleanupSpec() {
         if (kafkaEmbedded) {
             kafkaEmbedded.after()
-            kafkaEmbedded.before()
         }
     }
 
-    def cleanupSpec() {
-        // teardown the embedded kafka instance if it's still around
-        if (kafkaEmbedded) {
-            kafkaEmbedded.after()
-        }
-    }
+// alternative to @EmbeddedKafka
+//    @ClassRule
+//    public static KafkaEmbedded kafkaEmbedded = new KafkaEmbedded(
+//            1,
+//            true,
+//            'retry-topic',
+//            'example-data-topic'
+//    )
 }
