@@ -12,9 +12,12 @@ import spock.lang.Specification
 @EmbeddedKafka(topics = ['retry-topic', 'example-data-topic'])
 class BaseKafkaSpecification extends Specification {
     @Autowired
-    KafkaEmbedded kafkaEmbedded
+    protected static KafkaEmbedded kafkaEmbedded
 
-    def cleanup() {
-        kafkaEmbedded.after()
+    def cleanupSpec() {
+        // teardown the embedded kafka instance if it's still around
+        if (kafkaEmbedded) {
+            kafkaEmbedded.after()
+        }
     }
 }

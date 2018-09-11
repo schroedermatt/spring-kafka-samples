@@ -42,17 +42,7 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 		mockExecutions = 0
 	}
 
-	def fail() {
-		log.error("FAILING ON EXECUTION #{}", mockExecutions)
-		throw new KafkaException("oops!")
-	}
-
-	def succeed() {
-		log.info("SUCCEEDING ON EXECUTION #{}", mockExecutions)
-		latch.countDown()
-	}
-
-	def 'RetryTemplate: message will succeed after failing 3 times'() {
+	def 'listener will retry 4 times and succeed'() {
 		given: 'the expectation to sync the data once'
 		latch = new CountDownLatch(1)
 
@@ -68,15 +58,14 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 		}
 
 		when: 'a message is published'
-		kafkaTemplate.send(topic, "123", data)
-		kafkaTemplate.flush()
+		sendMessage()
 
-		then: 'the latch will countdown within 10 seconds'
-		latch.await(5, TimeUnit.SECONDS)
+		then: 'the latch will countdown once within 2 seconds'
+		latch.await(2, TimeUnit.SECONDS)
 		mockExecutions == 4
 	}
 
-	def 'RetryTemplate: message will fail after limit of 5 attempts'() {
+	def 'listener will fail after retrying the limit of 5 attempts'() {
 		given: 'the expectation to not sync the data'
 		latch = new CountDownLatch(1)
 
@@ -87,11 +76,46 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 		}
 
 		when: 'a message is published'
+		sendMessage()
+
+		then: 'the latch will not change within 2 seconds'
+		!latch.await(2, TimeUnit.SECONDS)
+		mockExecutions == 5
+	}
+
+	def 'listener will fail if non KafkaException is thrown'() {
+		given: 'the expectation to not sync the data'
+		latch = new CountDownLatch(1)
+
+		// fail with a RuntimeException
+		mockDataService.syncData(_ as ImportantData) >> {
+			mockExecutions++
+			log.error("UNEXPECTED RUNTIME FAILURE ON EXECUTION #{}", mockExecutions)
+			throw new RuntimeException("oops!")
+		}
+
+		when: 'a message is published'
+		sendMessage()
+
+		then: 'the latch will not change within 2 seconds'
+		!latch.await(2, TimeUnit.SECONDS)
+		mockExecutions == 5
+	}
+
+	/** PRIVATE TEST HELPERS **/
+
+	private void fail() {
+		log.error("FAILING ON EXECUTION #{}", mockExecutions)
+		throw new KafkaException("oops!")
+	}
+
+	private void succeed() {
+		log.info("SUCCEEDING ON EXECUTION #{}", mockExecutions)
+		latch.countDown()
+	}
+
+	private void sendMessage() {
 		kafkaTemplate.send('retry-topic', "123", data)
 		kafkaTemplate.flush()
-
-		then: 'the latch will not change within 10 seconds'
-		!latch.await(5, TimeUnit.SECONDS)
-		mockExecutions == 5
 	}
 }

@@ -24,14 +24,16 @@ public class AvroConsumerConfig {
 		this.kafkaProperties = kafkaProperties;
 	}
 
-
 	@Bean
 	public ConsumerFactory<String, AvroSampleData> avroConsumerFactory() {
+		// build base consumer props from application.yml
 		Map<String, Object> props = kafkaProperties.buildConsumerProperties();
-		// override the deserializer prop to use Avro
+
+		// add on props specific to the avro consumer
 		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
 		props.put(ConsumerConfig.GROUP_ID_CONFIG, "avro-listener");
-//		props.put(ConsumerConfig.CLIENT_ID_CONFIG, "avro-client");
+		props.put("specific.avro.reader", "true");
+
 		return new DefaultKafkaConsumerFactory<>(props);
 	}
 

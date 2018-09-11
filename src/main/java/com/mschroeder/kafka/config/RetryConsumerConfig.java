@@ -1,6 +1,7 @@
 package com.mschroeder.kafka.config;
 
 import com.mschroeder.kafka.domain.ImportantData;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,7 @@ import java.util.Map;
 import static java.util.Collections.singletonMap;
 import static org.springframework.kafka.listener.AbstractMessageListenerContainer.AckMode.MANUAL;
 
+@Slf4j
 @Configuration
 public class RetryConsumerConfig {
 	private final KafkaProperties kafkaProperties;
@@ -36,7 +38,7 @@ public class RetryConsumerConfig {
 
 		// fixed backoff
 		FixedBackOffPolicy policy = new FixedBackOffPolicy();
-		policy.setBackOffPeriod(100);
+		policy.setBackOffPeriod(50); // milliseconds
 
 		retryTemplate.setBackOffPolicy(policy);
 
@@ -58,7 +60,14 @@ public class RetryConsumerConfig {
 		ConcurrentKafkaListenerContainerFactory<String, ImportantData> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.getContainerProperties().setAckMode(MANUAL);
 		factory.setConsumerFactory(jsonConsumerFactory());
+
 		factory.setRetryTemplate(retryTemplate());
+
+		// create simple recovery callback (this gets executed once retry policy limits have been exceeded)
+		factory.setRecoveryCallback(context -> {
+			log.error("RetryPolicy limit has been exceeded!");
+			return null;
+		});
 
 		return factory;
 	}
