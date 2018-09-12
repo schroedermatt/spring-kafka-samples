@@ -43,6 +43,12 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 		mockExecutions = 0
 	}
 
+	def 'buffer for 2 seconds to let embedded kafka come up'() {
+		expect:
+		Thread.sleep(2000)
+		true
+	}
+
 	def 'listener will retry 4 times and succeed'() {
 		given: 'the expectation to sync the data once'
 		// fail 3 times and then succeed
@@ -110,7 +116,7 @@ class RetryListenerSpec extends BaseKafkaSpecification {
 	}
 
 	private void sendMessage() {
-		kafkaTemplate.send('retry-topic', "123", data)
+		kafkaTemplate.send(topic, "123", data)
 		kafkaTemplate.flush()
 	}
 }
