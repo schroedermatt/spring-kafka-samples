@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "PackageEvent",
+  "namespace": "com.mschroeder.kafka.avro",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "int"
+    },
+    {
+          "name": "event_type",
+          "type": "string"
+    },
+    {
+      "name": "package_id",
+      "type": "int"
+    },
+    {
+      "name": "user_id",
+      "type": "int"
+    }
+  ]
+}

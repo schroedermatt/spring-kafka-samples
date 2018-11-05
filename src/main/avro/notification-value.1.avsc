@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "Notification",
+  "namespace": "com.mschroeder.kafka.avro",
+  "fields": [
+    {
+      "name": "user_id",
+      "type": "int"
+    },
+    {
+      "name": "email",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    }
+  ]
+}

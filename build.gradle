@@ -33,8 +33,11 @@ repositories {
 dependencies {
 	compile 'org.springframework.boot:spring-boot-starter'
 	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
-
 	compile 'org.springframework.kafka:spring-kafka'
+
+	compile("org.apache.kafka:kafka-clients:${kafka_version}")
+	compile("org.apache.kafka:kafka-streams:${kafka_streams_version}")
+	compile("io.confluent:kafka-streams-avro-serde:${avro_serde_version}")
 
 	compile "joda-time:joda-time:${joda_version}"
 	compile "org.apache.avro:avro:${avro_version}"
@@ -44,6 +47,7 @@ dependencies {
 
 	testCompile 'org.springframework.boot:spring-boot-starter-test'
 	testCompile 'org.springframework.kafka:spring-kafka-test'
+	testCompile("org.apache.kafka:kafka-streams-test-utils:${kafka_streams_test_utils_version}")
 	testCompile group: 'org.spockframework', name: 'spock-core', version: spockframework_version
 	testCompile group: 'org.spockframework', name: 'spock-spring', version: spockframework_version
 
