@@ -5,6 +5,7 @@ import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.common.serialization.IntegerSerializer
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.StringSerializer
 import org.apache.kafka.streams.StreamsBuilder
@@ -27,8 +28,8 @@ class UserTableSpec extends BaseStreamSpec {
 	def setupSpec() {
 		userSerde = new SpecificAvroSerde<>(mockSchemaRegistry)
 		userSerde.configure(SERDE_PROPS, false)
-		recordFactory = new ConsumerRecordFactory<String, User>(
-                new StringSerializer(),
+		recordFactory = new ConsumerRecordFactory<Integer, User>(
+                new IntegerSerializer(),
 				userSerde.serializer()
 		)
 	}
@@ -53,7 +54,7 @@ class UserTableSpec extends BaseStreamSpec {
 
 			ConsumerRecord consumerRecord = recordFactory.create(
 					UserTable.SOURCE_TOPIC,
-					user.getUserId() as String,
+					user.getUserId(),
 					user
 			)
 
@@ -62,7 +63,7 @@ class UserTableSpec extends BaseStreamSpec {
 
 		then: "it is stored in the KTable"
 			def store = testDriver.getKeyValueStore(UserTable.KTABLE_NAME)
-			User result = store.get(user.getUserId() as String) as User
+			User result = store.get(user.getUserId()) as User
 
 			result
             result == user
@@ -83,7 +84,7 @@ class UserTableSpec extends BaseStreamSpec {
         user.setNotificationsEnabled(true)
         ConsumerRecord consumerRecord = recordFactory.create(
                 UserTable.SOURCE_TOPIC,
-                user.getUserId() as String,
+                user.getUserId(),
                 user
         )
 
@@ -91,7 +92,7 @@ class UserTableSpec extends BaseStreamSpec {
         testDriver.pipeInput(consumerRecord)
 
         then: "it is stored in the KTable"
-        User result = store.get(user.getUserId() as String) as User
+        User result = store.get(user.getUserId()) as User
 
         result
         result.getNotificationsEnabled()

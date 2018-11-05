@@ -25,13 +25,13 @@ public class UserTable {
 	static final String KTABLE_NAME = "users";
 
 	@Bean
-	public KTable<String, User> usersKTable(Serde<User> userSerde, StreamsBuilder streamsBuilder) {
+	public KTable<Integer, User> usersKTable(Serde<User> userSerde, StreamsBuilder streamsBuilder) {
 		return streamsBuilder.table(
 				SOURCE_TOPIC,
 				/* ktable config (/tmp/kafka-streams/{application_id}/0_0/rocksdb/{table_name}) */
-				Materialized.<String, User, KeyValueStore<Bytes, byte[]>>
+				Materialized.<Integer, User, KeyValueStore<Bytes, byte[]>>
 						as(KTABLE_NAME)
-						.withKeySerde(Serdes.String())
+						.withKeySerde(Serdes.Integer())
 						.withValueSerde(userSerde)
 						.withCachingDisabled()
 						.withLoggingDisabled()
