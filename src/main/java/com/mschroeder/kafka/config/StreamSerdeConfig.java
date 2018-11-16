@@ -1,9 +1,12 @@
 package com.mschroeder.kafka.config;
 
+import com.mschroeder.kafka.avro.Notification;
 import com.mschroeder.kafka.avro.PackageEvent;
 import com.mschroeder.kafka.avro.User;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -28,8 +31,8 @@ public class StreamSerdeConfig {
 		props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProps.getBootstrapServers());
 		props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-app");
 		props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class.getName());
-
 		props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "localhost:8081");
+		props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.Integer().getClass());
 
 		return new StreamsConfig(props);
 	}
@@ -42,6 +45,12 @@ public class StreamSerdeConfig {
 
 	@Bean
 	Serde<User> userSerde(SerdeFactory factory, KafkaProperties props) {
+		final Map<String, Object> serdeProps = props.buildConsumerProperties();
+		return factory.createSpecificSerde(serdeProps);
+	}
+
+	@Bean
+	Serde<Notification> notificationSerde(SerdeFactory factory, KafkaProperties props) {
 		final Map<String, Object> serdeProps = props.buildConsumerProperties();
 		return factory.createSpecificSerde(serdeProps);
 	}

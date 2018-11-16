@@ -27,7 +27,7 @@ abstract class BaseStreamSpec extends Specification {
         defaultProps = new Properties()
         defaultProps.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID)
         defaultProps.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BROKER_ID)
-        defaultProps.setProperty(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName())
+        defaultProps.setProperty(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.Integer().getClass().getName())
     }
 
     // run before every test

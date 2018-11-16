@@ -2,6 +2,7 @@ package com.mschroeder.kafka.config
 
 import com.mschroeder.kafka.avro.AvroSampleData
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -12,8 +13,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.*
-
-import static org.springframework.kafka.listener.AbstractMessageListenerContainer.AckMode.MANUAL
+import org.springframework.kafka.listener.AbstractMessageListenerContainer
 
 @TestConfiguration
 class MockSchemaRegistryConfig {
@@ -39,7 +39,10 @@ class MockSchemaRegistryConfig {
 	 */
 	@Bean
 	KafkaAvroSerializer kafkaAvroSerializer() {
-		new KafkaAvroSerializer(schemaRegistryClient())
+		Map props = props.buildConsumerProperties()
+		props.put(AbstractKafkaAvroSerDeConfig.AUTO_REGISTER_SCHEMAS, true)
+
+		new KafkaAvroSerializer(schemaRegistryClient(), props)
 	}
 
 	/**
@@ -48,7 +51,10 @@ class MockSchemaRegistryConfig {
 	 */
 	@Bean
 	KafkaAvroDeserializer kafkaAvroDeserializer() {
-		new KafkaAvroDeserializer(schemaRegistryClient(), props.buildConsumerProperties())
+		Map props = props.buildConsumerProperties()
+		props.put(AbstractKafkaAvroSerDeConfig.AUTO_REGISTER_SCHEMAS, true)
+
+		new KafkaAvroDeserializer(schemaRegistryClient(), props)
 	}
 
 	/**
@@ -100,7 +106,7 @@ class MockSchemaRegistryConfig {
 	@Bean("avroListenerFactory")
 	ConcurrentKafkaListenerContainerFactory<String, AvroSampleData> avroListenerFactory() {
 		ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory()
-		factory.getContainerProperties().setAckMode(MANUAL)
+		factory.getContainerProperties().setAckMode(AbstractMessageListenerContainer.AckMode.MANUAL)
 		factory.setConsumerFactory(avroConsumerFactory())
 		return factory
 	}

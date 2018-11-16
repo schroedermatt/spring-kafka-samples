@@ -10,6 +10,7 @@ import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -18,7 +19,6 @@ import org.springframework.retry.support.RetryTemplate;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
-import static org.springframework.kafka.listener.AbstractMessageListenerContainer.AckMode.MANUAL;
 
 @Slf4j
 @Configuration
@@ -58,7 +58,7 @@ public class RetryConsumerConfig {
 	@Bean("kafkaListenerContainerFactory")
 	public ConcurrentKafkaListenerContainerFactory<String, ImportantData> kafkaListenerContainerFactory() {
 		ConcurrentKafkaListenerContainerFactory<String, ImportantData> factory = new ConcurrentKafkaListenerContainerFactory<>();
-		factory.getContainerProperties().setAckMode(MANUAL);
+		factory.getContainerProperties().setAckMode(AbstractMessageListenerContainer.AckMode.MANUAL);
 		factory.setConsumerFactory(jsonConsumerFactory());
 
 		factory.setRetryTemplate(retryTemplate());

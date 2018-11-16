@@ -13,7 +13,7 @@ import spock.lang.Specification
 @DirtiesContext
 @ActiveProfiles("test")
 @Import([MockBeanFactory, MockSchemaRegistryConfig])
-@EmbeddedKafka(topics = ['${topics.retry-data}', '${topics.example-data}'], controlledShutdown = true)
+@EmbeddedKafka(topics = ['${topics.retry-data}', '${topics.example-data}', 'user-updates'], controlledShutdown = true)
 class BaseKafkaSpecification extends Specification {
     @Autowired
     protected static KafkaEmbedded kafkaEmbedded

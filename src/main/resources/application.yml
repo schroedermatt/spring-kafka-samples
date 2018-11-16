@@ -6,8 +6,6 @@ spring:
     properties: # for KafkaAvroDeserializer
       schema.registry.url: http://localhost:8081
       specific.avro.reader: true
-    listener:
-      ack-mode: manual
   profiles:
     active: development
 
