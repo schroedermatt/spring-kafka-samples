@@ -1,7 +1,20 @@
-# Spring Kafka Listener
+# Spring Kafka Samples
 
-This repository has a simple example of configuring a Kafka listener via only the `application.yml` properties.
+This repository is a playground for various features of Spring Kafka and related testing frameworks.
 
-## Testing
+### Examples:
+* JSON && Avro Listeners
+* KTable - `UserTable`
+* Streams (and table join) - `DeliveryNotificationStream`
+* Spring Retry (See `RetryListenerSpec`)
+* Streams Testing (See `UserTableSpec` && `DeliveryNotificationStreamSpec`)
+* Embedded Testing (See `UserTableEmbeddedSpec` && `DeliveryNotificationEmbeddedSpec`)
+* `MockSchemaRegistryClient` usage (see all tests)
 
-There is an example setup of using the `MockSchemaRegistryClient` so that Avro data can be tested as well.
+### Testing Kafka Presentation
+
+There is a slide deck available that walks through the ins and outs of
+testing kafka applications. It references and utilizes a lot of sample code
+from this repository.
+
+Deck: https://www.testingkafka.schroedermatt.com/
