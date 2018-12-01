@@ -27,9 +27,9 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 public class DeliveryNotificationStream {
-	private static final String SOURCE_TOPIC = "package-events";
-	private static final String TARGET_TOPIC = "delivery-notifications";
-	private static final String DELIVERED = "DELIVERED";
+	public static final String SOURCE_TOPIC = "package-events";
+	public static final String TARGET_TOPIC = "delivery-notifications";
+	public static final String DELIVERED = "DELIVERED";
 
 	@Bean
 	public KStream<Integer, Notification> deliveredPackage(

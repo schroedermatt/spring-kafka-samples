@@ -15,11 +15,4 @@ class MockBeanFactory {
     ImportantDataService importantDataServiceMock() {
         mockFactory.Mock(ImportantDataService)
     }
-
-// use acks to run the CountdownLatch?
-//    @Bean
-//    @Primary
-//    Acknowledgment mockAcknowledgement() {
-//        mockFactory.Mock(Acknowledgment)
-//    }
 }

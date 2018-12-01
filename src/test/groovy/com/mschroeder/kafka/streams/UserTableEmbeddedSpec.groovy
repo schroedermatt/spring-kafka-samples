@@ -1,6 +1,7 @@
 package com.mschroeder.kafka.streams
 
 import com.mschroeder.kafka.avro.User
+import com.mschroeder.kafka.util.IntegrationTestUtil
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
@@ -19,6 +20,10 @@ import org.springframework.test.context.ActiveProfiles
 import spock.lang.Specification
 
 import java.util.concurrent.Future
+
+import static com.mschroeder.kafka.util.IntegrationTestUtil.assertThatStoreContainsKeys
+import static com.mschroeder.kafka.util.IntegrationTestUtil.produceKeyValuesSynchronously
+import static com.mschroeder.kafka.util.IntegrationTestUtil.waitUntilStoreIsQueryable
 
 @SpringBootTest
 @ActiveProfiles('test')
@@ -52,65 +57,5 @@ class UserTableEmbeddedSpec extends Specification {
         )
 
         assertThatStoreContainsKeys(store, [userId])
-    }
-
-
-    private static final long DEFAULT_TIMEOUT = 10 * 1000L
-
-    static <K, V> void produceKeyValuesSynchronously(String topic, Collection<KeyValue<K, V>> records, Producer producer) {
-        for (KeyValue<K, V> record : records) {
-            Future<RecordMetadata> f = producer.send(new ProducerRecord<>(topic, record.key, record.value))
-            f.get()
-        }
-        producer.flush()
-        producer.close()
-    }
-
-    static <T> T waitUntilStoreIsQueryable(final String storeName,
-                                              final QueryableStoreType<T> queryableStoreType,
-                                              final KafkaStreams streams) {
-        while (true) {
-            try {
-                return streams.store(storeName, queryableStoreType)
-            } catch (InvalidStateStoreException ignored) {
-                // store not yet ready for querying
-                Thread.sleep(50)
-            }
-        }
-    }
-
-
-
-    /**
-     * Asserts that the key-value store contains exactly the expected content and nothing more.
-     *
-     * @param store    the store to be validated
-     * @param expected the expected contents of the store
-     * @param <K>      the store's key type
-     * @param <V>      the store's value type
-     */
-    static <K, V> void assertThatKeyValueStoreContains(ReadOnlyKeyValueStore<K, V> store, Map<K, V> expected) {
-        TestUtils.waitForCondition(
-                { expected.keySet().every { k ->  expected[k] == store.get(k) } },
-                DEFAULT_TIMEOUT,
-                "Expected values not found in KV store"
-        )
-    }
-
-    /**
-     * Asserts that the key-value store contains exactly the expected content and nothing more.
-     *
-     * @param store    the store to be validated
-     * @param expected the expected contents of the store
-     * @param <K>      the store's key type
-     * @param <V>      the store's value type
-     */
-    static <K, V> void assertThatStoreContainsKeys(ReadOnlyKeyValueStore<K, V> store, List<K> expected)
-            throws InterruptedException {
-        TestUtils.waitForCondition(
-                {expected.stream().every { k -> store.get(k) != null }},
-                DEFAULT_TIMEOUT,
-                "Expected keys not found in KV store"
-        )
     }
 }

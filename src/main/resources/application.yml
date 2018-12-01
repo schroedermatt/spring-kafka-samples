@@ -3,6 +3,9 @@ spring:
     bootstrap-servers: ${spring.embedded.kafka.brokers}
     consumer:
       enable-auto-commit: false
+      auto-offset-reset: earliest
+      client-id: kafka-samples-client
+      group-id: kafka-samples
     properties: # for KafkaAvroDeserializer
       schema.registry.url: http://localhost:8081
       specific.avro.reader: true
