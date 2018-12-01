@@ -10,9 +10,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 
 import java.util.Map;
+
+import static org.springframework.kafka.listener.AbstractMessageListenerContainer.AckMode.MANUAL;
 
 @Configuration
 @Profile("!test") // configure real schema registry when not running in test profile
@@ -38,7 +39,7 @@ public class AvroConsumerConfig {
 	@Bean("avroListenerFactory")
 	public ConcurrentKafkaListenerContainerFactory<String, AvroSampleData> avroListenerFactory() {
 		ConcurrentKafkaListenerContainerFactory<String, AvroSampleData> factory = new ConcurrentKafkaListenerContainerFactory<>();
-		factory.getContainerProperties().setAckMode(AbstractMessageListenerContainer.AckMode.MANUAL);
+		factory.getContainerProperties().setAckMode(MANUAL);
 		factory.setConsumerFactory(avroConsumerFactory());
 
 		return factory;

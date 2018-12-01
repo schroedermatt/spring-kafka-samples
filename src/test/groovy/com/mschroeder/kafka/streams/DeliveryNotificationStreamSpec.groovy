@@ -10,10 +10,8 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.IntegerDeserializer
 import org.apache.kafka.common.serialization.IntegerSerializer
 import org.apache.kafka.common.serialization.Serde
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.TopologyTestDriver
-import org.apache.kafka.streams.kstream.KTable
 import org.apache.kafka.streams.state.KeyValueStore
 import org.apache.kafka.streams.test.ConsumerRecordFactory
 import spock.lang.Shared
@@ -96,6 +94,7 @@ class DeliveryNotificationStreamSpec extends BaseStreamSpec {
 		)
 
 		recordFound
+		recordFound.value().email == "user@email.com"
 	}
 
 

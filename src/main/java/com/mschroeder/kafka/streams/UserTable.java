@@ -27,14 +27,14 @@ public class UserTable {
 	@Bean
 	public KTable<Integer, User> usersKTable(Serde<User> userSerde, StreamsBuilder streamsBuilder) {
 		return streamsBuilder.table(
-				SOURCE_TOPIC,
-				/* ktable config (/tmp/kafka-streams/{application_id}/0_0/rocksdb/{table_name}) */
-				Materialized.<Integer, User, KeyValueStore<Bytes, byte[]>>
-						as(KTABLE_NAME)
-						.withKeySerde(Serdes.Integer())
-						.withValueSerde(userSerde)
-						.withCachingDisabled()
-						.withLoggingDisabled()
-		);
+					SOURCE_TOPIC,
+					/* ktable state (/tmp/kafka-streams/streams-app/0_0/rocksdb/users) */
+					Materialized.<Integer, User, KeyValueStore<Bytes, byte[]>>
+							as(KTABLE_NAME)
+							.withKeySerde(Serdes.Integer())
+							.withValueSerde(userSerde)
+							.withCachingDisabled()
+							.withLoggingDisabled()
+				);
 	}
 }
